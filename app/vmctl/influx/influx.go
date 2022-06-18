@@ -253,6 +253,7 @@ func (c *Client) FetchDataPoints(s *Series) (*ChunkedResponse, error) {
 		Chunked:         true,
 		ChunkSize:       1e4,
 	}
+	//log.Printf("%s", iq.Command)
 	cr, err := c.QueryAsChunk(iq)
 	if err != nil {
 		return nil, fmt.Errorf("query %q err: %s", iq.Command, err)
@@ -282,6 +283,12 @@ func (c *Client) fieldsByMeasurement() (map[string][]string, error) {
 		fields := qv.values[fKey]
 		values := make([]string, 0)
 		for key, field := range fields {
+
+			if strings.ContainsAny(field.(string), "\x03`@") {
+				log.Printf("Found %s, ignoring", field.(string))
+				skipped++
+				continue
+			}
 			if types[key].(string) == "string" {
 				skipped++
 				continue

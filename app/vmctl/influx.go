@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"strings"
 	"sync"
 
 	"github.com/VictoriaMetrics/VictoriaMetrics/app/vmctl/barpool"
@@ -107,6 +108,12 @@ const nameLabel = "__name__"
 const valueField = "value"
 
 func (ip *influxProcessor) do(s *influx.Series) error {
+
+	if strings.ContainsAny(s.Measurement, "\x03`@") {
+		log.Printf("Found in measurement %s, ignoring", s.Measurement)
+		return nil
+	}
+
 	cr, err := ip.ic.FetchDataPoints(s)
 	if err != nil {
 		return fmt.Errorf("failed to fetch datapoints: %s", err)
